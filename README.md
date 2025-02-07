@@ -46,8 +46,8 @@ Before deploying, ensure you have the following installed:
 
 ### **Step 1: Clone the Repository**
 ```bash
-git clone git clone https://github.com/your-username/cloud-network-architecture.git
-cd cloud-network-architecture
+git clone (https://github.com/Vitmer/Hub_and_Spoke_Model_with_Terraform.git)
+cd Hub_and_Spoke_Model_with_Terraform
 ```
 
 ### **Step 2: Configure Terraform Variables**
