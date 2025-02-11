@@ -70,13 +70,3 @@ resource "azurerm_monitor_metric_alert" "sql_storage_alert" {
     action_group_id = azurerm_monitor_action_group.alert_group.id
   }
 }
-
-##############################
-# VARIABLES
-##############################
-
-# Variable for the alert email to avoid hardcoding
-variable "alert_email" {
-  description = "Email address for receiving alert notifications"
-  type        = string
-}

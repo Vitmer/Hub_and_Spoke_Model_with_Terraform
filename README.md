@@ -82,12 +82,13 @@ This will provision the **entire Hub-and-Spoke network, security policies, monit
 ├── hub_and_spoke.tf            # Hub-and-Spoke network configuration (VNet, Peering, Load Balancer)
 ├── security.tf                 # Security configuration (RBAC, NSG, Key Vault, Zero Trust policies)
 ├── monitoring.tf               # Monitoring (Azure Monitor, Log Analytics, alert rules)
-├── network_connectivity.tf      # Network connectivity (VPN, ExpressRoute)
-├── network_security.tf         # Network security (DDoS, Firewall, NSG)
-├── database.tf                 # Database configuration (SQL, NoSQL, parameterization)
-├── alerts.tf                   # Alert definitions and notification rules
+├── network_connectivity.tf      # Network connectivity (VPN, ExpressRoute, Virtual WAN)
+├── network_security.tf         # Network security (DDoS Protection, Firewall, NSG, Route Tables)
+├── database.tf                 # Database configuration (SQL Server with Private Endpoints)
+├── alerts.tf                   # Alert definitions and notification rules (VPN, SQL Server Storage)
+├── private_endpoints.tf        # Private Endpoints configuration (Secure access to SQL Server and internal services)
 ├── variables.tf                # Terraform variables for modular deployment
-├── terraform.yml               # CI/CD pipeline GitHub Actions for automatic deployment
+├── terraform.yml               # CI/CD pipeline with GitHub Actions for automatic deployment
 ├── README.md                   # Project documentation and setup guide
 ├── LICENSE                     # License file (MIT, Apache 2.0, or custom)
 ```
@@ -98,41 +99,67 @@ This Terraform configuration **deploys the following Azure resources**:
 
 Networking (Hub-and-Spoke Architecture)
 
-		
-  hub_and_spoke.tf
-	•	azurerm_virtual_network – Creates the Hub and Spoke VNets for network segmentation.
-	•	azurerm_subnet – Defines subnets for workloads, firewalls, and gateways.
+hub_and_spoke.tf
+	•	azurerm_virtual_network – Defines the Hub and Spoke VNets for network segmentation.
+	•	azurerm_subnet – Configures subnets for workloads, firewalls, and gateways.
 	•	azurerm_virtual_network_peering – Establishes connectivity between Hub and Spoke VNets.
+	•	azurerm_virtual_hub – Creates a Virtual Hub for centralized routing.
+	•	azurerm_virtual_hub_connection – Connects the Hub to Spoke VNets.
 
-	network_connectivity.tf
-	•	azurerm_express_route_circuit – Enables ExpressRoute for secure on-premises connectivity.
+network_connectivity.tf
+	•	azurerm_express_route_circuit – Enables ExpressRoute for secure hybrid connectivity.
+	•	azurerm_virtual_network_gateway – Deploys a VPN Gateway for secure remote access.
+	•	azurerm_virtual_network_gateway_connection – Establishes a VPN tunnel to on-premises networks.
+	•	azurerm_local_network_gateway – Defines on-premises VPN connectivity.
 
- Monitoring
+Security and Network Protection
 
-	monitoring.tf
+network_security.tf
+	•	azurerm_firewall – Deploys an Azure Firewall to control inbound and outbound traffic.
+	•	azurerm_firewall_policy – Defines firewall rules and security policies.
+	•	azurerm_network_security_group – Enforces security rules at the subnet level.
+	•	azurerm_subnet_network_security_group_association – Associates NSG with subnets.
+	•	azurerm_route_table – Configures custom route tables for traffic filtering.
+
+security.tf
+	•	azurerm_key_vault – Creates a secure Key Vault for storing secrets.
+	•	azurerm_key_vault_secret – Stores sensitive credentials inside Key Vault.
+	•	azurerm_network_ddos_protection_plan – Provides DDoS protection for network security.
+	•	azurerm_role_assignment – Implements RBAC for controlled access to Azure resources.  
+
+Monitoring and Observability
+
+monitoring.tf
 	•	azurerm_monitor_diagnostic_setting – Enables diagnostic logging for network and security components.
-	•	azurerm_log_analytics_workspace – Stores logs for performance monitoring and security insights.
-	•	azurerm_sentinel_log_analytics_workspace_onboarding – Connects Log Analytics to Azure Sentinel for advanced security analytics.
-	•	azurerm_monitor_metric_alert – Triggers alerts based on network and security events. 
+	•	azurerm_log_analytics_workspace – Stores logs for security insights and monitoring.
+	•	azurerm_monitor_metric_alert – Defines alerts for VPN connectivity and SQL Server storage.
+	•	azurerm_monitor_action_group – Sends notifications when alerts are triggered.
 
 Database Configuration
 
-	database.tf
+database.tf
 	•	azurerm_mssql_server – Deploys a managed SQL Server instance.
-	•	azurerm_mssql_database – Creates and configures SQL databases.
-	•	azurerm_cosmosdb_account – Deploys a CosmosDB instance for NoSQL workloads.
+	•	azurerm_private_endpoint – Ensures private connectivity to SQL Server.
+
+Private Endpoints & Secure Connectivity
+
+private_endpoints.tf
+	•	azurerm_private_dns_zone – Manages DNS resolution for private endpoints.
+	•	azurerm_private_endpoint – Enables secure private access to services.
+	•	azurerm_private_dns_zone_virtual_network_link – Links the DNS zone to the Hub VNet.
 
 Alerts and Notifications
 
-	alerts.tf
-	•	azurerm_monitor_action_group – Defines action groups for alert notifications.
-	•	azurerm_monitor_activity_log_alert – Triggers alerts based on Azure activity logs.
+alerts.tf
+	•	azurerm_monitor_action_group – Defines action groups for email notifications.
+	•	azurerm_monitor_metric_alert – Monitors VPN connectivity and SQL Server storage utilization.
 
 Terraform and CI/CD
 
-	terraform.yml
+terraform.yml
 	•	GitHub Actions – Automates Terraform deployment, validation, and security checks.
-	•	variables.tf
+
+variables.tf
 	•	Stores reusable Terraform variables for modular infrastructure deployment.
 
 ## **6. CI/CD Pipeline**
