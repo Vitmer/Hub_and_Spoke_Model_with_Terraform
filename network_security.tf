@@ -1,4 +1,111 @@
 ##############################
+# SECURITY - FIREWALL & ROUTING
+##############################
+
+# Creates an Azure Firewall Policy
+resource "azurerm_firewall_policy" "hub_firewall_policy" {
+  name                = "hub-firewall-policy"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+
+}
+
+resource "azurerm_firewall_policy_rule_collection_group" "hub_firewall_rules" {
+  name               = "hub-firewall-rules"
+  firewall_policy_id = azurerm_firewall_policy.hub_firewall_policy.id
+  priority           = 100
+
+  network_rule_collection {
+    name     = "Allow-Internet"
+    priority = 100
+    action   = "Allow"
+
+    rule {
+      name                  = "AllowHTTPs"
+      protocols             = ["TCP"]
+      source_addresses      = ["10.1.0.0/16"]
+      destination_addresses = ["*"]
+      destination_ports     = ["443"]
+    }
+
+    rule {
+      name                  = "AllowSSH"
+      protocols             = ["TCP"]
+      source_addresses      = ["10.1.0.0/16"]
+      destination_addresses = ["*"]
+      destination_ports     = ["22"]
+    }
+
+    rule {
+      name                  = "AllowRDP"
+      protocols             = ["TCP"]
+      source_addresses      = ["10.1.0.0/16"]
+      destination_addresses = ["*"]
+      destination_ports     = ["3389"]
+    }
+
+    rule {
+      name                  = "AllowDNS"
+      protocols             = ["UDP"]
+      source_addresses      = ["10.1.0.0/16"]
+      destination_addresses = ["*"]
+      destination_ports     = ["53"]
+    }
+
+    rule {
+      name                  = "AllowICMP"
+      protocols             = ["ICMP"]
+      source_addresses      = ["10.1.0.0/16"]
+      destination_addresses = ["*"]
+      destination_ports     = ["*"]
+    }
+  }
+}
+
+
+# Deploys Azure Firewall in the Hub network
+resource "azurerm_firewall" "hub_firewall" {
+  name                = "hub-firewall"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
+
+  firewall_policy_id  = azurerm_firewall_policy.hub_firewall_policy.id
+
+  ip_configuration {
+    name                 = "firewall-ipconfig"
+    subnet_id            = azurerm_subnet.firewall_subnet.id
+    public_ip_address_id = azurerm_public_ip.firewall_pip.id
+  }
+}
+
+# Creates a route table for controlling traffic flow
+resource "azurerm_route_table" "hub_route_table" {
+  name                = "hub-udr"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+# Default route: Forward all traffic to Firewall
+resource "azurerm_route" "default_route" {
+  name                   = "all-traffic-to-firewall"
+  resource_group_name    = azurerm_resource_group.rg.name
+  route_table_name       = azurerm_route_table.hub_route_table.name
+  address_prefix         = "0.0.0.0/0"
+  next_hop_type          = "VirtualAppliance"
+  next_hop_in_ip_address = azurerm_firewall.hub_firewall.ip_configuration[0].private_ip_address
+}
+
+# Associating the Route Table with the Hub Subnet  
+# This resource links the Hub Route Table to the Hub Subnet, ensuring all traffic follows the defined routing rules.
+resource "azurerm_subnet_route_table_association" "hub_route_assoc" {
+  subnet_id      = azurerm_subnet.hub_subnet.id
+  route_table_id = azurerm_route_table.hub_route_table.id
+}
+
+
+##############################
 # NETWORK SECURITY GROUP (NSG)
 ##############################
 
