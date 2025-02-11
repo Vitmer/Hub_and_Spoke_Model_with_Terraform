@@ -53,3 +53,9 @@ variable "service_principal_object_id" {
   description = "Object ID of the Service Principal"
   type        = string
 }
+## Variable for the alert email to avoid hardcoding
+variable "alert_email" {
+  description = "Email address for receiving alert notifications"
+  type        = string
+  default     = "admin@example.com"  # Default email for alerts
+}
