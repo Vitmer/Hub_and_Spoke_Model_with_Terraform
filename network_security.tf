@@ -11,7 +11,7 @@ resource "azurerm_network_security_group" "hub_nsg" {
 
   # Security rule to allow VPN traffic between Hub and Spoke
   security_rule {
-    name                       = "Allow-VPN"
+    name                       = "Allow-VPN-Spoke1"
     priority                   = 100
     direction                  = "Inbound"
     access                     = "Allow"
@@ -21,6 +21,18 @@ resource "azurerm_network_security_group" "hub_nsg" {
     source_address_prefix      = "10.0.0.0/16"  # Traffic from Hub network
     destination_address_prefix = "10.1.0.0/16"  # Traffic to Spoke1 network
   }
+
+  security_rule {
+  name                       = "Allow-VPN-Spoke2"
+  priority                   = 110  # Следующее по приоритету правило
+  direction                  = "Inbound"
+  access                     = "Allow"
+  protocol                   = "*"  
+  source_port_range          = "*"  
+  destination_port_range     = "*"  
+  source_address_prefix      = "10.0.0.0/16"  # Hub Network
+  destination_address_prefix = "10.2.0.0/16"  # Spoke2 Network
+}
 
   # Security rule to deny all inbound traffic by default
   security_rule {
