@@ -62,6 +62,38 @@ resource "azurerm_firewall_policy_rule_collection_group" "hub_firewall_rules" {
   }
 }
 
+# Firewall Rule for Load Balancer (DNAT)
+resource "azurerm_firewall_policy_rule_collection_group" "firewall_lb_rules" {
+  name               = "firewall-lb-rules"
+  firewall_policy_id = azurerm_firewall_policy.hub_firewall_policy.id
+  priority           = 200
+
+  nat_rule_collection {
+    name     = "Allow-LB"
+    priority = 100
+    action   = "Dnat"
+
+    rule {
+      name                  = "DNAT-HTTP"
+      protocols             = ["TCP"]
+      source_addresses      = ["*"]
+      destination_address   = azurerm_public_ip.firewall_pip.ip_address  # Public IP of Firewall
+      destination_ports     = ["80"]
+      translated_address    = azurerm_lb.internal_lb.frontend_ip_configuration[0].private_ip_address  # Internal LB IP
+      translated_port       = "80"
+    }
+
+    rule {
+      name                  = "DNAT-HTTPS"
+      protocols             = ["TCP"]
+      source_addresses      = ["*"]
+      destination_address   = azurerm_public_ip.firewall_pip.ip_address  # Public IP of Firewall
+      destination_ports     = ["443"]
+      translated_address    = azurerm_lb.internal_lb.frontend_ip_configuration[0].private_ip_address  # Internal LB IP
+      translated_port       = "443"
+    }
+  }
+}
 
 # Deploys Azure Firewall in the Hub network
 resource "azurerm_firewall" "hub_firewall" {

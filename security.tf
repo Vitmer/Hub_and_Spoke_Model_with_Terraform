@@ -126,26 +126,15 @@ resource "azurerm_virtual_wan" "main_vwan" {
   type                = "Standard"
 }
 
-##############################
-# FIREWALL RULES
-##############################
-
-# Configures a firewall rule to allow HTTP and HTTPS traffic
-resource "azurerm_firewall_network_rule_collection" "allow_http_https" {
-  name                = "allow-http-https"
-  azure_firewall_name = azurerm_firewall.hub_firewall.name
+# Creates a Virtual HUB for centralized networking and security management
+/*resource "azurerm_virtual_hub" "hub" {
+  name                = "virtual-hub"
+  location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  priority            = 100
-  action              = "Allow"
+  sku                 = "Standard"
+  address_prefix      = "10.5.0.0/24"  # CIDR Virtual Hub
+}*/
 
-  rule {
-    name                  = "allow-internet"
-    source_addresses      = ["10.1.0.0/16", "10.2.0.0/16"]
-    destination_addresses = ["*"]
-    destination_ports     = ["80", "443"]
-    protocols             = ["TCP"]
-  }
-}
 
 ##############################
 # LOG ANALYTICS WORKSPACES

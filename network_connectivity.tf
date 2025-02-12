@@ -132,49 +132,34 @@ resource "azurerm_express_route_gateway" "er_gateway" {
 # PUBLIC LOAD BALANCER
 ##############################
 
-# Public IP for Load Balancer
-resource "azurerm_public_ip" "lb_ip" {
-  name                = "lb-public-ip"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  allocation_method   = "Static"
-}
-
-# Deploys a public Load Balancer
-resource "azurerm_lb" "public_lb" {
-  name                = "public-load-balancer"
+# Internal Load Balancer (Now it is protected by Firewall)
+resource "azurerm_lb" "internal_lb" {
+  name                = "internal-load-balancer"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   sku                 = "Standard"
 
   frontend_ip_configuration {
-    name                 = "public-lb-ip"
-    public_ip_address_id = azurerm_public_ip.lb_ip.id
+    name                 = "internal-lb-ip"
+    subnet_id            = azurerm_subnet.hub_subnet.id  # Привязан к внутренней сети
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
-# Backend pool for Load Balancer
+# Backend pool для Load Balancer
 resource "azurerm_lb_backend_address_pool" "lb_backend_pool" {
-  loadbalancer_id = azurerm_lb.public_lb.id
+  loadbalancer_id = azurerm_lb.internal_lb.id
   name            = "backend-pool"
 }
 
-# HTTP Load Balancer rule
+# HTTP правило для Internal Load Balancer
 resource "azurerm_lb_rule" "http_lb_rule" {
-  loadbalancer_id                = azurerm_lb.public_lb.id
+  loadbalancer_id                = azurerm_lb.internal_lb.id
   name                           = "http-rule"
   protocol                       = "Tcp"
   frontend_port                  = 80
   backend_port                   = 80
-  frontend_ip_configuration_name = "public-lb-ip"
+  frontend_ip_configuration_name = "internal-lb-ip"
   backend_address_pool_ids        = [azurerm_lb_backend_address_pool.lb_backend_pool.id]
 }
 
-##############################
-# OUTPUT VALUES
-##############################
-
-# Outputs Route Table ID
-output "route_table_id" {
-  value = azurerm_virtual_hub_route_table.default_route_table.id
-}
