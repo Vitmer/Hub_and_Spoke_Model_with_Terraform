@@ -59,3 +59,14 @@ variable "alert_email" {
   type        = string
   default     = "admin@example.com"  # Default email for alerts
 }
+
+variable "sql_admin_user" {
+  description = "The administrator login for SQL Server"
+  type        = string
+}
+
+variable "sql_admin_password" {
+  description = "The administrator login password for SQL Server"
+  type        = string
+  sensitive   = true
+}

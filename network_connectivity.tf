@@ -66,6 +66,28 @@ resource "azurerm_virtual_network_gateway_connection" "vpn_connection" {
 }
 
 ##############################
+# VIRTUAL WAN
+##############################
+
+# Creates a Virtual WAN for centralized networking and security management
+resource "azurerm_virtual_wan" "main_vwan" {
+  name                = "main-vwan"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  type                = "Standard"
+}
+
+# Creates a Virtual HUB for centralized networking and security management
+/*resource "azurerm_virtual_hub" "hub" {
+  name                = "virtual-hub"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "Standard"
+  address_prefix      = "10.5.0.0/24"  # CIDR Virtual Hub
+}*/
+
+
+##############################
 # VIRTUAL HUB & ROUTING
 ##############################
 

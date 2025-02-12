@@ -1,4 +1,17 @@
 ##############################
+# LOG ANALYTICS WORKSPACES
+##############################
+
+# Creates a Log Analytics workspace for monitoring and security insights
+resource "azurerm_log_analytics_workspace" "logs" {
+  name                = "log-workspace"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+##############################
 # LOGGING & MONITORING
 ##############################
 

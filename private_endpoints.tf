@@ -39,3 +39,18 @@ resource "azurerm_private_dns_a_record" "private_sql_dns" {
   ttl                 = 300
   records             = [azurerm_private_endpoint.private_sql.private_service_connection[0].private_ip_address]
 }
+
+# Creates a private endpoint for secure Key Vault access
+resource "azurerm_private_endpoint" "kv_private" {
+  name                = "kv-private-endpoint"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.private_link_subnet.id
+
+  private_service_connection {
+    name                           = "kv-private-connection"
+    private_connection_resource_id = azurerm_key_vault.vault.id
+    is_manual_connection           = false
+    subresource_names              = ["vault"]
+  }
+}

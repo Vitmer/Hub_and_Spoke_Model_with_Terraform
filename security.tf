@@ -56,12 +56,12 @@ resource "azurerm_key_vault_access_policy" "admin_policy" {
 # SECURITY & DDOS PROTECTION
 ##############################
 
-# Creates a DDoS Protection Plan for enhanced network security
+/*# Creates a DDoS Protection Plan for enhanced network security
 resource "azurerm_network_ddos_protection_plan" "ddos_plan" {
   name                = "ddos-protection"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-}
+}*/
 
 ##############################
 # ROLE-BASED ACCESS CONTROL (RBAC)
@@ -81,70 +81,18 @@ resource "azurerm_role_assignment" "limited_admin" {
   principal_id         = var.service_principal_object_id
 }
 
-##############################
-# PRIVATE ENDPOINTS
-##############################
-
-# Creates a private endpoint for secure Key Vault access
-resource "azurerm_private_endpoint" "kv_private" {
-  name                = "kv-private-endpoint"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  subnet_id           = azurerm_subnet.private_link_subnet.id
-
-  private_service_connection {
-    name                           = "kv-private-connection"
-    private_connection_resource_id = azurerm_key_vault.vault.id
-    is_manual_connection           = false
-    subresource_names              = ["vault"]
-  }
+# Assigns the "SQL Server Contributor" role to a service principal
+# This role allows managing databases, security, and configurations in SQL Server
+resource "azurerm_role_assignment" "sql_admin_role" {
+  scope                = azurerm_mssql_server.sql_server.id
+  role_definition_name = "SQL Server Contributor"
+  principal_id         = var.service_principal_object_id
 }
 
-##############################
-# DATABASE CONFIGURATION
-##############################
-
-# Creates an Azure SQL Server instance
-resource "azurerm_mssql_server" "example" {
-  name                         = "sql-server-example"
-  resource_group_name          = azurerm_resource_group.rg.name
-  location                     = azurerm_resource_group.rg.location
-  version                      = "12.0"
-  administrator_login          = "adminuser"
-  administrator_login_password = "P@ssword123!"
-}
-
-##############################
-# VIRTUAL WAN
-##############################
-
-# Creates a Virtual WAN for centralized networking and security management
-resource "azurerm_virtual_wan" "main_vwan" {
-  name                = "main-vwan"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  type                = "Standard"
-}
-
-# Creates a Virtual HUB for centralized networking and security management
-/*resource "azurerm_virtual_hub" "hub" {
-  name                = "virtual-hub"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  sku                 = "Standard"
-  address_prefix      = "10.5.0.0/24"  # CIDR Virtual Hub
-}*/
-
-
-##############################
-# LOG ANALYTICS WORKSPACES
-##############################
-
-# Creates a Log Analytics workspace for monitoring and security insights
-resource "azurerm_log_analytics_workspace" "logs" {
-  name                = "log-workspace"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
+# Assigns the "User Access Administrator" role to a service principal
+# This allows managing role assignments and access permissions
+resource "azurerm_role_assignment" "user_access_admin" {
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = "User Access Administrator"
+  principal_id         = var.service_principal_object_id
 }
