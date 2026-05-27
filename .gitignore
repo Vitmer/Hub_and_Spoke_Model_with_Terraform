@@ -20,4 +20,4 @@ __pycache__/
 *.swp
 
 # System files
-.DS
+.DS_Store
